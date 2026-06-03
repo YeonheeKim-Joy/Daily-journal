@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="나의 하루">
+<meta name="theme-color" content="#ffffff">
+<title>나의 하루 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f5f5f4; --bg3: #efede9;
+  --text: #1a1a18; --text2: #6b6b67; --text3: #a0a09c;
+  --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
+  --green: #1D9E75; --green-bg: #E1F5EE; --green-bd: #5DCAA5; --green-tx: #0F6E56;
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-bd: #85B7EB;
+  --r: 12px; --r2: 16px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e; --bg2: #2c2c2e; --bg3: #131313;
+    --text: #f2f2f7; --text2: #aeaeb2; --text3: #6c6c70;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+    --green-bg: #0d3327; --green-bd: #1D9E75; --green-tx: #5DCAA5;
+    --blue-bg: #0d2240; --blue-bd: #378ADD;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg3); font-family: -apple-system, 'Helvetica Neue', sans-serif; color: var(--text); }
+body { display: flex; flex-direction: column; }
+
+/* TOP BAR */
+.topbar {
+  flex-shrink: 0;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+  padding: 10px 18px 10px;
+  padding-top: calc(10px + var(--safe-top));
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.topbar-date { font-size: 12px; color: var(--text2); }
+
+/* SCROLL */
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 14px; padding-bottom: calc(72px + var(--safe-bot) + 16px); }
+
+/* BOTTOM NAV */
+.botnav {
+  flex-shrink: 0;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bot);
+  z-index: 99;
+}
+.navbtn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 2px 6px; font-size: 10px; font-weight: 500;
+  color: var(--text3); background: none; border: none; cursor: pointer;
+  transition: color 0.15s;
+}
+.navbtn i { font-size: 23px; }
+.navbtn.on { color: var(--green); }
+
+/* SECTIONS */
+.sec { display: none; }
+.sec.on { display: block; }
+
+/* GROUP LABEL */
+.glabel {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin: 20px 6px 6px;
+}
+.glabel:first-child { margin-top: 0; }
+
+/* CARD */
+.card { background: var(--bg); border-radius: var(--r2); overflow: hidden; margin-bottom: 2px; }
+.crow {
+  padding: 11px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.crow:last-child { border-bottom: none; }
+.clabel { font-size: 12px; font-weight: 600; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+.clabel i { font-size: 13px; }
+textarea, input[type=text], input[type=number], select {
+  width: 100%; font-size: 15px; color: var(--text);
+  background: transparent; border: none; outline: none;
+  font-family: inherit; resize: none; line-height: 1.5; padding: 0;
+}
+textarea::placeholder, input::placeholder { color: var(--text3); }
+select { -webkit-appearance: none; }
+.unit { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.row2 .crow { border-right: 0.5px solid var(--border); }
+.row2 .crow:last-child { border-right: none; border-bottom: none; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.row3 .crow { border-right: 0.5px solid var(--border); border-bottom: none; }
+.row3 .crow:last-child { border-right: none; }
+
+/* CHECKLIST */
+.chk-item {
+  padding: 13px 16px; display: flex; align-items: center; gap: 13px;
+  border-bottom: 0.5px solid var(--border); cursor: pointer;
+  background: var(--bg); transition: background 0.1s;
+}
+.chk-item:last-child { border-bottom: none; }
+.chk-ring {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; background: transparent;
+}
+.chk-ring i { font-size: 15px; color: transparent; transition: color 0.2s; }
+.chk-item.done .chk-ring { background: var(--green); border-color: var(--green); }
+.chk-item.done .chk-ring i { color: #fff; }
+.chk-info { flex: 1; }
+.chk-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.chk-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.chk-item.done .chk-name { color: var(--green-tx); }
+
+/* BUTTONS */
+.btn-save {
+  width: 100%; margin-top: 10px; padding: 14px;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  color: var(--text); background: var(--bg);
+  border: 0.5px solid var(--border2); border-radius: var(--r2);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.15s;
+}
+.btn-save:active { transform: scale(0.98); }
+.btn-save.ok { color: var(--green-tx); background: var(--green-bg); border-color: var(--green-bd); }
+
+.btn-ai {
+  width: 100%; margin-top: 10px; padding: 14px;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  color: var(--green-tx); background: var(--green-bg); border: 0.5px solid var(--green-bd);
+  border-radius: var(--r2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.15s;
+}
+.btn-ai:active { transform: scale(0.98); }
+
+.btn-month {
+  width: 100%; margin-top: 10px; padding: 14px;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  color: var(--blue); background: var(--blue-bg); border: 0.5px solid var(--blue-bd);
+  border-radius: var(--r2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.15s;
+}
+.btn-month:active { transform: scale(0.98); }
+
+/* AI OUTPUT */
+.ai-out {
+  margin-top: 12px; padding: 16px;
+  background: var(--bg); border-radius: var(--r2);
+  font-size: 14px; line-height: 1.8; color: var(--text);
+  white-space: pre-wrap; display: none;
+}
+.ai-out.loading { color: var(--text2); font-style: italic; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px; }
+.stat-card { background: var(--bg); border-radius: var(--r2); padding: 14px 16px; }
+.stat-lbl { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.stat-val { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.stat-unit { font-size: 13px; font-weight: 400; color: var(--text2); margin-left: 2px; }
+
+/* LOG ROWS */
+.log-row { padding: 10px 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: baseline; gap: 10px; }
+.log-row:last-child { border-bottom: none; }
+.log-dt { font-size: 13px; font-weight: 700; color: var(--text); min-width: 32px; }
+.log-info { font-size: 13px; color: var(--text2); flex: 1; }
+.log-eng { padding: 10px 16px; border-bottom: 0.5px solid var(--border); }
+.log-eng:last-child { border-bottom: none; }
+.log-eng-dt { font-size: 12px; font-weight: 700; color: var(--text2); }
+.log-eng-txt { font-size: 14px; color: var(--text); margin-top: 2px; line-height: 1.4; }
+.empty { font-size: 13px; color: var(--text3); padding: 14px 16px; }
+
+/* MONTH SELECT */
+.msel-wrap { margin-bottom: 8px; }
+.msel-wrap select { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--r2); padding: 12px 16px; font-size: 15px; font-weight: 500; color: var(--text); font-family: inherit; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">📖 나의 하루 기록</div>
+  <div class="topbar-date" id="topdate"></div>
+</div>
+
+<div class="scroll">
+
+  <!-- 신앙 -->
+  <div class="sec on" id="sec-faith">
+    <div class="glabel">성경 말씀</div>
+    <div class="card">
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-book-2"></i>오늘의 말씀</div>
+        <textarea id="bible-verse" rows="3" placeholder="예) 요한복음 3:16 — 하나님이 세상을 이처럼 사랑하사..."></textarea>
+      </div>
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-heart"></i>묵상 & 느낀 점</div>
+        <textarea id="bible-reflection" rows="4" placeholder="말씀을 통해 깨달은 것을 적어주세요..."></textarea>
+      </div>
+    </div>
+    <div class="glabel">기도</div>
+    <div class="card">
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-list-check"></i>기도 제목</div>
+        <textarea id="prayer-topics" rows="3" placeholder="예) 1. 가족 건강  2. 직장 동료  3. 나의 성장..."></textarea>
+      </div>
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-hand-stop"></i>기도 내용</div>
+        <textarea id="prayer-content" rows="4" placeholder="오늘 드린 기도를 자유롭게 적어주세요..."></textarea>
+      </div>
+    </div>
+    <button class="btn-save" id="btn-faith" onclick="saveFaith()"><i class="ti ti-device-floppy"></i> 저장하기</button>
+  </div>
+
+  <!-- 영어 -->
+  <div class="sec" id="sec-english">
+    <div class="glabel">오늘의 영어</div>
+    <div class="card">
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-writing"></i>영어 문장 / 일기</div>
+        <textarea id="english-sentence" rows="7" placeholder="Today, I... / I learned that... / One thing I noticed was..."></textarea>
+      </div>
+    </div>
+    <button class="btn-save" id="btn-english" onclick="saveEnglish()"><i class="ti ti-device-floppy"></i> 저장하기</button>
+  </div>
+
+  <!-- 운동 -->
+  <div class="sec" id="sec-workout">
+    <div class="glabel">Strength Training</div>
+    <div class="card">
+      <div class="chk-item" id="chk-legraise" onclick="toggleChk('legraise')">
+        <div class="chk-ring"><i class="ti ti-check"></i></div>
+        <div class="chk-info">
+          <div class="chk-name">Leg Raise</div>
+          <div class="chk-sub">core · lower abs</div>
+        </div>
+      </div>
+      <div class="chk-item" id="chk-squat" onclick="toggleChk('squat')">
+        <div class="chk-ring"><i class="ti ti-check"></i></div>
+        <div class="chk-info">
+          <div class="chk-name">Static Squat</div>
+          <div class="chk-sub">quads · glutes</div>
+        </div>
+      </div>
+      <div class="chk-item" id="chk-plank" onclick="toggleChk('plank')">
+        <div class="chk-ring"><i class="ti ti-check"></i></div>
+        <div class="chk-info">
+          <div class="chk-name">Plank</div>
+          <div class="chk-sub">core · full body</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glabel">조깅</div>
+    <div class="card">
+      <div class="row2">
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-route"></i>거리</div>
+          <input type="number" id="jog-dist" placeholder="5.0" step="0.1" min="0">
+          <div class="unit">km</div>
+        </div>
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-clock"></i>페이스</div>
+          <input type="text" id="jog-pace" placeholder="6분 30초">
+          <div class="unit">min/km</div>
+        </div>
+      </div>
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-shoe"></i>운동화 모델</div>
+        <input type="text" id="jog-shoes" placeholder="예) Nike Pegasus 41">
+      </div>
+    </div>
+    <button class="btn-save" id="btn-workout" onclick="saveWorkout()"><i class="ti ti-device-floppy"></i> 저장하기</button>
+  </div>
+
+  <!-- 몸 상태 -->
+  <div class="sec" id="sec-body">
+    <div class="glabel">몸 상태</div>
+    <div class="card">
+      <div class="row2">
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-scale"></i>몸무게</div>
+          <input type="number" id="body-weight" placeholder="70.0" step="0.1" min="0">
+          <div class="unit">kg</div>
+        </div>
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-moon"></i>수면</div>
+          <input type="number" id="body-sleep" placeholder="7.5" step="0.5" min="0" max="24">
+          <div class="unit">시간</div>
+        </div>
+      </div>
+      <div class="crow">
+        <div class="clabel"><i class="ti ti-mood-smile"></i>컨디션</div>
+        <select id="body-cond">
+          <option value="">선택해주세요</option>
+          <option value="최상">😄 최상 — 에너지 넘침</option>
+          <option value="좋음">🙂 좋음 — 보통 이상</option>
+          <option value="보통">😐 보통 — 무난한 하루</option>
+          <option value="피곤">😴 피곤 — 기력 부족</option>
+          <option value="나쁨">😔 나쁨 — 많이 힘든 날</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="glabel">날씨</div>
+    <div class="card">
+      <div class="row3">
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-temperature"></i>온도</div>
+          <input type="number" id="w-temp" placeholder="24" step="0.5">
+          <div class="unit">°C</div>
+        </div>
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-droplet"></i>습도</div>
+          <input type="number" id="w-humi" placeholder="65" min="0" max="100">
+          <div class="unit">%</div>
+        </div>
+        <div class="crow">
+          <div class="clabel"><i class="ti ti-cloud"></i>날씨</div>
+          <select id="w-type">
+            <option value="">-</option>
+            <option value="맑음">☀️ 맑음</option>
+            <option value="구름">⛅ 구름</option>
+            <option value="흐림">☁️ 흐림</option>
+            <option value="비">🌧️ 비</option>
+            <option value="눈">❄️ 눈</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn-save" id="btn-body" onclick="saveBody()"><i class="ti ti-device-floppy"></i> 저장하기</button>
+  </div>
+
+  <!-- 요약 -->
+  <div class="sec" id="sec-summary">
+    <div class="glabel">일간 AI 요약</div>
+    <button class="btn-ai" onclick="genDaily()"><i class="ti ti-sparkles"></i> 오늘의 기록 요약하기</button>
+    <div class="ai-out" id="daily-out"></div>
+
+    <div class="glabel" style="margin-top:24px;">월간 요약</div>
+    <div class="msel-wrap"><select id="msel" onchange="renderMonth()"></select></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">기록 일수</div><div class="stat-val" id="s-days">—<span class="stat-unit">일</span></div></div>
+      <div class="stat-card"><div class="stat-lbl">총 조깅</div><div class="stat-val" id="s-km">—<span class="stat-unit">km</span></div></div>
+      <div class="stat-card"><div class="stat-lbl">평균 수면</div><div class="stat-val" id="s-sleep">—<span class="stat-unit">h</span></div></div>
+      <div class="stat-card"><div class="stat-lbl">평균 몸무게</div><div class="stat-val" id="s-wt">—<span class="stat-unit">kg</span></div></div>
+    </div>
+
+    <div class="glabel">이달의 조깅 기록</div>
+    <div class="card" id="jog-log"><div class="empty">기록 없음</div></div>
+
+    <div class="glabel">이달의 영어 문장</div>
+    <div class="card" id="eng-log"><div class="empty">기록 없음</div></div>
+
+    <button class="btn-month" onclick="genMonthly()"><i class="ti ti-sparkles"></i> 이달 AI 요약 생성하기</button>
+    <div class="ai-out" id="monthly-out"></div>
+  </div>
+
+</div>
+
+<!-- 하단 네비게이션 -->
+<nav class="botnav">
+  <button class="navbtn on" id="nav-faith" onclick="goTab('faith')"><i class="ti ti-bible"></i>신앙</button>
+  <button class="navbtn" id="nav-english" onclick="goTab('english')"><i class="ti ti-language"></i>영어</button>
+  <button class="navbtn" id="nav-workout" onclick="goTab('workout')"><i class="ti ti-run"></i>운동</button>
+  <button class="navbtn" id="nav-body" onclick="goTab('body')"><i class="ti ti-activity"></i>몸 상태</button>
+  <button class="navbtn" id="nav-summary" onclick="goTab('summary')"><i class="ti ti-sparkles"></i>요약</button>
+</nav>
+
+<script>
+const TABS = ['faith','english','workout','body','summary'];
+const todayObj = new Date();
+const todayKey = todayObj.toISOString().slice(0,10);
+const chks = {legraise:false, squat:false, plank:false};
+
+document.getElementById('topdate').textContent =
+  todayObj.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+
+function gs(k){ try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null} }
+function ss(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch{} }
+function logs(){ return Object.keys(localStorage).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).map(k=>({date:k,...gs(k)})).sort((a,b)=>a.date.localeCompare(b.date)) }
+
+function goTab(t){
+  TABS.forEach(n=>{
+    document.getElementById('sec-'+n).classList.remove('on');
+    document.getElementById('nav-'+n).classList.remove('on');
+  });
+  document.getElementById('sec-'+t).classList.add('on');
+  document.getElementById('nav-'+t).classList.add('on');
+  document.querySelector('.scroll').scrollTop=0;
+  if(t==='summary'){fillMsel();renderMonth();}
+}
+
+function toggleChk(id){
+  chks[id]=!chks[id];
+  document.getElementById('chk-'+id).classList.toggle('done',chks[id]);
+}
+
+function collectAll(){
+  return {
+    bibleVerse:document.getElementById('bible-verse').value,
+    bibleRef:document.getElementById('bible-reflection').value,
+    prayerTopics:document.getElementById('prayer-topics').value,
+    prayerContent:document.getElementById('prayer-content').value,
+    english:document.getElementById('english-sentence').value,
+    legRaise:chks.legraise, squat:chks.squat, plank:chks.plank,
+    jogDist:parseFloat(document.getElementById('jog-dist').value)||0,
+    jogPace:document.getElementById('jog-pace').value,
+    jogShoes:document.getElementById('jog-shoes').value,
+    weight:parseFloat(document.getElementById('body-weight').value)||0,
+    sleep:parseFloat(document.getElementById('body-sleep').value)||0,
+    cond:document.getElementById('body-cond').value,
+    wTemp:document.getElementById('w-temp').value,
+    wHumi:document.getElementById('w-humi').value,
+    wType:document.getElementById('w-type').value,
+    at:new Date().toISOString()
+  };
+}
+
+function flashBtn(id){
+  const b=document.getElementById(id); const orig=b.innerHTML;
+  b.innerHTML='<i class="ti ti-check"></i> 저장됨'; b.classList.add('ok');
+  setTimeout(()=>{b.innerHTML=orig;b.classList.remove('ok');},2000);
+}
+
+function saveFaith(){ ss(todayKey,{...gs(todayKey)||{},...collectAll()}); flashBtn('btn-faith'); }
+function saveEnglish(){ ss(todayKey,{...gs(todayKey)||{},...collectAll()}); flashBtn('btn-english'); }
+function saveWorkout(){ ss(todayKey,{...gs(todayKey)||{},...collectAll()}); flashBtn('btn-workout'); }
+function saveBody(){ ss(todayKey,{...gs(todayKey)||{},...collectAll()}); flashBtn('btn-body'); }
+
+function fillMsel(){
+  const sel=document.getElementById('msel');
+  const all=logs(); const ms=[...new Set(all.map(l=>l.date.slice(0,7)))].reverse();
+  const cur=todayKey.slice(0,7); if(!ms.includes(cur))ms.unshift(cur);
+  sel.innerHTML=ms.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}">${y}년 ${+mo}월</option>`;}).join('');
+}
+
+function renderMonth(){
+  const m=document.getElementById('msel').value; if(!m)return;
+  const all=logs().filter(l=>l.date.startsWith(m));
+  const km=all.reduce((s,l)=>s+(l.jogDist||0),0);
+  const slp=all.filter(l=>l.sleep>0); const aSlp=slp.length?(slp.reduce((s,l)=>s+l.sleep,0)/slp.length):0;
+  const wts=all.filter(l=>l.weight>0); const aWt=wts.length?(wts.reduce((s,l)=>s+l.weight,0)/wts.length):0;
+  document.getElementById('s-days').innerHTML=`${all.length}<span class="stat-unit">일</span>`;
+  document.getElementById('s-km').innerHTML=`${km.toFixed(1)}<span class="stat-unit">km</span>`;
+  document.getElementById('s-sleep').innerHTML=aSlp?`${aSlp.toFixed(1)}<span class="stat-unit">h</span>`:`—`;
+  document.getElementById('s-wt').innerHTML=aWt?`${aWt.toFixed(1)}<span class="stat-unit">kg</span>`:`—`;
+  const jogs=all.filter(l=>l.jogDist>0);
+  document.getElementById('jog-log').innerHTML=jogs.length?jogs.map(l=>`<div class="log-row"><span class="log-dt">${l.date.slice(5).replace('-','/')}</span><span class="log-info">${l.jogDist.toFixed(1)}km${l.jogPace?' · '+l.jogPace:''}${l.jogShoes?' · '+l.jogShoes:''}</span></div>`).join(''):'<div class="empty">이달 조깅 기록 없음</div>';
+  const engs=all.filter(l=>l.english&&l.english.trim());
+  document.getElementById('eng-log').innerHTML=engs.length?engs.map(l=>`<div class="log-eng"><div class="log-eng-dt">${l.date.slice(5).replace('-','/')}</div><div class="log-eng-txt">${l.english.slice(0,100)}${l.english.length>100?'…':''}</div></div>`).join(''):'<div class="empty">이달 영어 문장 없음</div>';
+}
+
+async function callAI(prompt,outEl){
+  outEl.style.display='block'; outEl.className='ai-out loading'; outEl.textContent='AI가 분석 중입니다...';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    outEl.className='ai-out'; outEl.textContent=d.content?.find(b=>b.type==='text')?.text||'요약 실패';
+  }catch{ outEl.className='ai-out'; outEl.textContent='오류가 발생했습니다. 잠시 후 다시 시도해주세요.'; }
+}
+
+async function genDaily(){
+  const d=gs(todayKey)||{};
+  const ds=todayObj.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  await callAI(`오늘(${ds}) 하루 기록 요약:
+[신앙] 말씀:${d.bibleVerse||'미입력'} / 묵상:${d.bibleRef||'미입력'} / 기도제목:${d.prayerTopics||'미입력'} / 기도내용:${d.prayerContent||'미입력'}
+[영어] ${d.english||'미입력'}
+[운동] Leg Raise:${d.legRaise?'완료':'미완료'} Static Squat:${d.squat?'완료':'미완료'} Plank:${d.plank?'완료':'미완료'} / 조깅:${d.jogDist||0}km ${d.jogPace||''} (${d.jogShoes||'미입력'})
+[몸] 몸무게:${d.weight||'미입력'}kg 수면:${d.sleep||'미입력'}h 컨디션:${d.cond||'미입력'}
+[날씨] ${d.wType||''} ${d.wTemp||''}°C 습도${d.wHumi||''}%
+다음 항목으로 따뜻하고 격려적인 톤으로 요약: 1.오늘의 한 줄 요약 2.신앙 묵상 핵심 3.운동&건강 총평 4.영어 학습 코멘트 5.내일을 위한 격려`,document.getElementById('daily-out'));
+}
+
+async function genMonthly(){
+  const m=document.getElementById('msel').value; if(!m)return;
+  const [y,mo]=m.split('-');
+  const all=logs().filter(l=>l.date.startsWith(m));
+  const km=all.reduce((s,l)=>s+(l.jogDist||0),0);
+  const wts=all.filter(l=>l.weight>0);
+  const slp=all.filter(l=>l.sleep>0);
+  const avgSlp=slp.length?(slp.reduce((s,l)=>s+l.sleep,0)/slp.length).toFixed(1):'없음';
+  const sm={}; all.forEach(l=>{if(l.jogShoes)sm[l.jogShoes]=(sm[l.jogShoes]||0)+1;});
+  const shoes=Object.entries(sm).map(([k,v])=>`${k}(${v}회)`).join(', ')||'없음';
+  const engs=all.filter(l=>l.english&&l.english.trim()).map(l=>`${l.date.slice(5)}: ${l.english.slice(0,60)}`).join('\n');
+  await callAI(`${y}년 ${+mo}월 한 달 기록 요약:
+통계: 기록${all.length}일 / 조깅${km.toFixed(1)}km(${all.filter(l=>l.jogDist>0).length}일) / 근력${all.filter(l=>l.legRaise||l.squat||l.plank).length}일 / 수면평균${avgSlp}h / 몸무게${wts[0]?.weight||'?'}→${wts[wts.length-1]?.weight||'?'}kg / 운동화:${shoes} / 컨디션:${all.filter(l=>l.cond).map(l=>l.cond).join(',')||'없음'}
+영어문장:\n${engs||'없음'}
+다음을 한국어로: 1.이달의 한 줄 요약 2.운동 성과 분석 3.건강&컨디션 총평 4.영어 문장 하이라이트 5.다음 달 목표 & 격려`,document.getElementById('monthly-out'));
+}
+
+fillMsel();
+</script>
+</body>
+</html>
